@@ -13,9 +13,15 @@ end
 local ProcessTracker = {}
 
 function ProcessTracker:new()
+  local cnt_cpu = 4
+  local cpu = vim.loop.cpu_info()
+  if cpu ~= nil then
+    cnt_cpu = #cpu + 4
+  end
+
   local tracker = {
     _instances = {},
-    _process_semaphore = nio.control.semaphore(#vim.loop.cpu_info() + 4),
+    _process_semaphore = nio.control.semaphore(cnt_cpu + 4),
   }
   self.__index = self
   setmetatable(tracker, self)

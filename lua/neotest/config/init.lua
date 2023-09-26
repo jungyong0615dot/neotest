@@ -327,7 +327,11 @@ local NeotestConfigModule = {}
 
 local convert_concurrent = function(val)
   if val == 0 or val == true then
-    return #vim.loop.cpu_info() + 4
+    local cpu = vim.loop.cpu_info()
+    if cpu ~= nil then
+      return #cpu + 4
+    end
+    return 4
   end
   if val == false then
     return 1
