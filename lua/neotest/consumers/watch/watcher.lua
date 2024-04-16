@@ -63,7 +63,10 @@ function Watcher:_get_linked_files(path, root_path, args)
     end
 
     for _, def in ipairs(defs or {}) do
-      dependency_uris[def.uri or def.targetUri] = true
+      local index = def.uri or def.targetUri
+      if index then
+        dependency_uris[def.uri or def.targetUri] = true
+      end
     end
   end
   local paths = { path }
@@ -77,7 +80,7 @@ function Watcher:_get_linked_files(path, root_path, args)
   return paths
 end
 
----@class neotest.consumers.watch.watcher.WatchArgs
+---@class neotest.consumers.watch.watcher.WatchArgs: neotest.watch.WatchArgs
 ---@field filter_path fun(root: string, path: string): boolean
 
 ---@paam tree neotest.Tree
@@ -143,6 +146,8 @@ function Watcher:_build_dependants(dependencies)
   return dependants
 end
 
+---@param tree neotest.Tree
+---@param args neotest.consumers.watch.watcher.WatchArgs
 function Watcher:watch(tree, args)
   local run = require("neotest").run
   local paths = self:_files_in_tree(tree)
@@ -156,6 +161,9 @@ function Watcher:watch(tree, args)
 
   self.autocmd_id = nio.api.nvim_create_autocmd("BufWritePost", {
     callback = function(autocmd_args)
+      if type(args.run_predicate) == "function" and not args.run_predicate(autocmd_args.buf) then
+        return
+      end
       nio.run(function()
         local path = nio.fn.expand(nio.api.nvim_buf_get_name(autocmd_args.buf), ":p")
 
